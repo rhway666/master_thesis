@@ -56,6 +56,12 @@ def parse_args():
     parser.add_argument("--disable_legend", action="store_true",help="Weather to disable the legend")
     parser.add_argument("--keep_prefixed_token", action="store_true",help="Weather to plot the prefixed tokens")
     parser.add_argument("--only_down_proj", action="store_true")
+
+    parser.add_argument("--linear_scope", type=str, default="qkv",
+    choices=["qkv", "qkvo", "mlp", "all"],
+    help="Which linear layers to plot (qkv = only Q/K/V, qkvo = Q/K/V/O, mlp = up/down/gate, all = everything)")
+
+
     args = parser.parse_args()
     return args
    
@@ -180,16 +186,43 @@ if args.plot_linear_input:
         
         
 
-# step 4.2: plot the token-wise output magnitude 
+# # step 4.2: plot the token-wise output magnitude 
+# if args.plot_linear_output:
+#     # layer_names = ['q_proj', 'k_proj', 'v_proj'] # plot Q/K/V, Q/K are pre repe 
+#     layer_names = ['apply_rotary_pos_emb_qk_rotation_wrapper.Q', 'apply_rotary_pos_emb_qk_rotation_wrapper.K', 'v_proj']
+#     stats = []
+#     for layer_name in layer_names:
+#         stats.append(stat_layer_wise_magnitude_output(dataloader, input_activation, model, layer_name, prefixed_tokens))
+#     plot_combined_layer_ax_output(stats, args.model_name, args.save_dir, layer_names, not args.disable_legend)
+#     for layer_name, stat in zip(layer_names, stats):
+#         plot_layer_ax_output(stat, args.model_name, args.save_dir, layer_name, not  args.disable_legend)
+
+
+# step 4.2改: plot the token-wise output magnitude 
 if args.plot_linear_output:
-    # layer_names = ['q_proj', 'k_proj', 'v_proj'] # plot Q/K/V, Q/K are pre repe 
-    layer_names = ['apply_rotary_pos_emb_qk_rotation_wrapper.Q', 'apply_rotary_pos_emb_qk_rotation_wrapper.K', 'v_proj']
-    stats = []
-    for layer_name in layer_names:
-        stats.append(stat_layer_wise_magnitude_output(dataloader, input_activation, model, layer_name, prefixed_tokens))
-    plot_combined_layer_ax_output(stats, args.model_name, args.save_dir, layer_names, not args.disable_legend)
-    for layer_name, stat in zip(layer_names, stats):
-        plot_layer_ax_output(stat, args.model_name, args.save_dir, layer_name, not  args.disable_legend)
+    # Attention QKVO
+    attn_layer_names = [
+        'apply_rotary_pos_emb_qk_rotation_wrapper.Q',
+        'apply_rotary_pos_emb_qk_rotation_wrapper.K',
+        'v_proj',
+        'o_proj'
+    ]
+    attn_stats = []
+    for layer_name in attn_layer_names:
+        attn_stats.append(stat_layer_wise_magnitude_output(dataloader, input_activation, model, layer_name, prefixed_tokens))
+    plot_combined_layer_ax_output(attn_stats, args.model_name, os.path.join(args.save_dir, "attn"), attn_layer_names, not args.disable_legend)
+    for layer_name, stat in zip(attn_layer_names, attn_stats):
+        plot_layer_ax_output(stat, args.model_name, os.path.join(args.save_dir, "attn"), layer_name, not args.disable_legend)
+
+    # MLP up/down/gate
+    mlp_layer_names = ['up_proj', 'down_proj', 'gate_proj']
+    mlp_stats = []
+    for layer_name in mlp_layer_names:
+        mlp_stats.append(stat_layer_wise_magnitude_output(dataloader, input_activation, model, layer_name, prefixed_tokens))
+    plot_combined_layer_ax_output(mlp_stats, args.model_name, os.path.join(args.save_dir, "mlp"), mlp_layer_names, not args.disable_legend)
+    for layer_name, stat in zip(mlp_layer_names, mlp_stats):
+        plot_layer_ax_output(stat, args.model_name, os.path.join(args.save_dir, "mlp"), layer_name, not args.disable_legend)
+
 
 
 # step 4.3: plot the layer-wise outlier token number

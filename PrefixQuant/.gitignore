@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Logs and cache
+log/
+cache/
+*.log
+*.tmp
+
+# Model artifacts and outputs
+pre_quantized_models/
+figures/
+figures_without_rot/
+analysis/
+
+# OS files
+.DS_Store
+Thumbs.db
