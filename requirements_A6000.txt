@@ -1,0 +1,21 @@
+# Core
+torch==2.2.2+cu121
+torchvision==0.17.2+cu121
+numpy<2
+transformers==4.40.1
+accelerate==0.28.0
+datasets==2.18.0
+
+# Quantization / CUDA kernel
+bitsandbytes==0.41.0
+fast-hadamard-transform==1.0.4.post1
+einops
+
+# Utilities
+tqdm
+matplotlib
+protobuf
+sentencepiece
+termcolor
+aiohttp==3.8.6
+charset_normalizer==3.2.0
